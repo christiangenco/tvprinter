@@ -4,19 +4,19 @@ const convert = require("heic-convert");
 const sharp = require("sharp");
 const fs = require("fs");
 const app = express();
-const port = 3000;
+const port = 9424;
 
 // Configure multer for image upload handling
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 app.post("/upload", upload.single("image"), async (req, res) => {
-  console.log(req);
   if (req.file) {
-    console.log(req.file);
     const originalImagePath = `inbox/${req.file.originalname}`;
-    const resizedImagePath = "image.resized.jpg";
-    const skewedImagePath = "image.skewed.jpg";
+    const resizedImagePath = "outbox/image.resized.jpg";
+    const skewedImagePath = "outbox/image.skewed.jpg";
+
+    console.log(originalImagePath);
 
     try {
       // Save original image
@@ -35,14 +35,28 @@ app.post("/upload", upload.single("image"), async (req, res) => {
         fs.writeFileSync(originalImagePath, req.file.buffer);
       }
 
-      // console.log("buffer", req.file.buffer);
-      // await sharp(req.file.buffer).toFile(originalImagePath);
-
-      // Resize the image to 100x100 pixels and output as JPEG
-      await sharp(path).resize(100, 100).toFile(resizedImagePath);
-
-      // Skew the image by 45 degrees and output as JPEG
+      // Resize image and output as JPEG
+      // resize([width], [height], [options])
       await sharp(path)
+        .resize(852, 658, {
+          // cover, contain, fill, inside or outside
+          fit: "contain",
+          // top, right top, right, right bottom, bottom, left bottom, left, left top.
+          position: "bottom",
+          background: "#FFFFFF",
+        })
+        .toFile(resizedImagePath);
+
+      // Resize and rotate the image by 45 degrees and output as JPEG
+      // we might actually want affine here for skewing: https://sharp.pixelplumbing.com/api-operation#affine
+      await sharp(path)
+        .resize(852, null, {
+          // cover, contain, fill, inside or outside
+          fit: "contain",
+          // top, right top, right, right bottom, bottom, left bottom, left, left top.
+          position: "bottom",
+          background: "#FFFFFF",
+        })
         .rotate(45, { background: "#fff" }) // rotating by 45 degrees with white background
         .toFile(skewedImagePath);
 
