@@ -3,6 +3,8 @@ const multer = require("multer");
 const convert = require("heic-convert");
 const sharp = require("sharp");
 const fs = require("fs");
+const { execSync } = require("child_process");
+
 const app = express();
 const port = 9424;
 
@@ -43,24 +45,36 @@ app.post("/upload", upload.single("image"), async (req, res) => {
           fit: "contain",
           // top, right top, right, right bottom, bottom, left bottom, left, left top.
           position: "bottom",
-          background: "#FFFFFF",
+          background: "#fff",
         })
         .toFile(resizedImagePath);
 
       // Resize and rotate the image by 45 degrees and output as JPEG
       // we might actually want affine here for skewing: https://sharp.pixelplumbing.com/api-operation#affine
       await sharp(path)
-        .resize(852, null, {
+        .resize(500, null, {
           // cover, contain, fill, inside or outside
           fit: "contain",
           // top, right top, right, right bottom, bottom, left bottom, left, left top.
-          position: "bottom",
-          background: "#FFFFFF",
+          position: "center",
+          background: "#fff",
         })
-        .rotate(45, { background: "#fff" }) // rotating by 45 degrees with white background
+        // rotating with white background
+        .rotate(45, { background: "#fff" })
+        // add pixels
+        .extend({
+          top: 500,
+          bottom: 500,
+          left: 500,
+          right: 500,
+          background: "#fff",
+        })
         .toFile(skewedImagePath);
 
-      res.status(200).send("Images processed and saved successfully.");
+      execSync(`open outbox`);
+
+      console.log("Image processed and saved successfully.");
+      res.status(200).send("Image processed and saved successfully.");
     } catch (error) {
       console.error("Error processing images:", error);
       res.status(500).send("Error processing images");

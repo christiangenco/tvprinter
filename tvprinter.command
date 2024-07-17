@@ -7,4 +7,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 # Run index.js with Node
-node index.js
+# node index.js
+
+# Run index.js with nodemon
+yarn run start
